@@ -21,7 +21,7 @@ def generate_template(name, kwargs=None):
 
 def generate_text(text, header: dict, pd):
     header['edition'] = 'yes'
-    header['notes'] = r"{{Textquality|50%}}"
+    header['notes'] = header.get('notes', '') + r"{{Textquality|50%}}"
     return "".join((
         generate_template('Header', header),
         "\n\n",

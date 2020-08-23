@@ -7,23 +7,21 @@ from .bot import create_page
 
 def create_content(url):
     xml = xml_from_url(url)
-
-    bd1 = str(xml.find(class_="bd1"))
+    bd1 = str(xml.find(class_="policyLibraryOverview_header"))
     hdtablefind = re.findall(
-        "索  引  号：(.*)主题分类：(.*)发文机关：(.*)成文日期：(.*)年(.*)月(.*)日.*标　　题：(.*)发文字号：(.*)发布日期：(.*)",
+        "标.*题：(.*)发文机关：(.*)发文字号：(.*)来.*源：(.*)主题分类：(.*)公文种类：(.*)成文日期：(.*)年(.*)月(.*)日.*发布日期：(.*)",
         bd1, re.DOTALL)
     hdtable = [h.strip() for h in hdtablefind[0]]
-    theme = hdtable[1]
-    lawmaker = "中华人民共和国"+hdtable[2]
-    date = hdtable[3:6]
-    title = hdtable[6]
-    tyfind = re.findall("(.*)关于.*的(.*)", title)
-    ty = f"中华人民共和国{tyfind[0][0]}的{tyfind[0][1]}" if tyfind else ""
-    no = hdtable[7]
+    theme = hdtable[4]
+    lawmaker = hdtable[1]
+    date = hdtable[6:9]
+    title = hdtable[0]
+    ty = "中华人民共和国"+hdtable[1]+"的"+hdtable[5]
+    no = hdtable[2]
+    source = hdtable[3]
 
-    bd1 = xml.find(class_="b12c")
+    bd1 = xml.find(class_="pages_content")
     bd1.replace_all()
-
     content = bd1.get_text(remove_breakline=True, add_link=True)
 
     main_page = generate_text(
@@ -37,6 +35,7 @@ def create_content(url):
             "发布者": lawmaker,
             "type": ty,
             "theme": theme,
+            "notes": source,
         },
         pd="PD-PRC-exempt"
     )
@@ -44,7 +43,7 @@ def create_content(url):
         textinfo={
             'source': url,
             'edition': '中华人民共和国中央人民政府网站',
-            'notes': '自国务院网站[[User:Njzjz/Njzjzwikibot#国务院文件|半自动导入]]'
+            'notes': '自国务院网站[[User:Njzjz/Njzjzwikibot#国务院部门文件|半自动导入]]'
         }
     )
     return title, main_page, talk_page
@@ -53,18 +52,17 @@ def create_content(url):
 def create(site, url):
     title, main_page, talk_page = create_content(url)
     create_page(site, title, main_page, talk_page,
-                r"[[User:Njzjz/Njzjzwikibot#国务院文件|自国务院网站导入国务院文件]]"
+                r"[[User:Njzjz/Njzjzwikibot#国务院部门文件|自国务院网站导入国务院部门文件]]"
                 )
 
 
-class GetGuoLinks(GetLinks):
-    URL_FORMAT = "http://sousuo.gov.cn/list.htm?t=paper&sort=publishDate&timetype=timeqb&n=100&p=%d"
-    SUB_URL_PREFIX = "http://www.gov.cn/zhengce/content/"
+class GetBuLinks(GetLinks):
+    URL_FORMAT = "http://sousuo.gov.cn/column/47995/%d.htm"
+    SUB_URL_PREFIX = "http://www.gov.cn/zhengce/zhengceku/"
 
 
 def run(args):
     user = args.user
     password = args.password
     run_from_links(code='zh', fam='wikisource', user=user, password=password,
-                   urls=GetGuoLinks(), create_func=create, max_try=10)
-
+                   urls=GetBuLinks(), create_func=create, max_try=10)
