@@ -146,6 +146,8 @@ class XML:
     def add_link(text):
         def format_link(s):
             raw_text = s.group(0).strip("《》")
+            if len(raw_text) <= 2:
+                return "《%s》" % raw_text
             if '〈' in raw_text:
                 real_text = raw_text.replace('〈', '《').replace('〉', '》')
                 raw_text = "%s|%s"%(real_text, raw_text)
