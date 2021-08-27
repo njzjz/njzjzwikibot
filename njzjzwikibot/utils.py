@@ -146,7 +146,8 @@ class XML:
     def add_link(text):
         # 目前不处理一个法规在不同年份有多个版本的问题
         exclude = set()
-        for s in re.finditer(r'[\(（][^\(\)（）]*?[简簡][称稱][^\(\)（）]*?《([^《》]*)》.*?》', text):
+        abbr_pat = r'[\(（][^\(\)（）]*?[简簡][称稱][^\(\)（）]*?《([^《》]*)》.*?[\)）]'
+        for s in re.finditer(abbr_pat, text):
             toexclude = s[1]
             toexclude = toexclude.replace('〈', '《').replace('〉', '》')
             exclude.add(toexclude)
