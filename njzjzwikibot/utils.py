@@ -140,19 +140,30 @@ class XML:
     
     @staticmethod
     def remove_breakline(text):
-        return re.sub('\n+', '\n\n', text)
+        return re.sub(r'\n+', '\n\n', text)
 
     @staticmethod
     def add_link(text):
+        # 目前不处理一个法规在不同年份有多个版本的问题
+        exclude = set()
+        abbr_pat = r'[\(（][^\(\)（）]*?[简簡][称稱][^\(\)（）]*?《([^《》]*)》.*?[\)）]'
+        for s in re.finditer(abbr_pat, text):
+            toexclude = s[1]
+            toexclude = toexclude.replace('〈', '《').replace('〉', '》')
+            exclude.add(toexclude)
         def format_link(s):
-            raw_text = s.group(0).strip("《》")
+            raw_text = s[1]
+            real_text = raw_text
             if len(raw_text) <= 2:
-                return "《%s》" % raw_text
+                return s[0]
             if '〈' in raw_text:
                 real_text = raw_text.replace('〈', '《').replace('〉', '》')
                 raw_text = "%s|%s"%(real_text, raw_text)
+            # exclude中只保存正规的链接，在此处将链接正规化后判断是否排除
+            if real_text in exclude:
+                return s[0]
             return "《[[%s]]》" % raw_text
-        return re.sub('《(.*?)》', format_link, text)
+        return re.sub(r'《(.*?)》', format_link, text)
 
     def get_text(self, remove_breakline=False, add_link=False):
         text = str(self)
